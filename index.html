@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>An Toàn Bay Drone Học Đường</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eef2f7;font-family:Arial,sans-serif;color:#172033}
+.app{max-width:760px;margin:20px auto;padding:12px}.card{background:white;border-radius:18px;box-shadow:0 8px 25px #0002;overflow:hidden}
+.top{text-align:center;padding:18px 20px 10px}.top h1{margin:0;color:#ef3f3f;font-size:23px}
+.progress{height:9px;background:#e5e7eb;border-radius:9px;margin-top:12px;overflow:hidden}.fill{height:100%;width:25%;background:#ff554d;transition:.3s}
+.content,.result{padding:20px}.counter{text-align:right;color:#667085;font-weight:bold;font-size:14px}
+h2{color:#df3030;font-size:21px}.image{height:210px;background:#f5f7fa;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;color:#64748b;margin-bottom:15px;border:1px dashed #cbd5e1;overflow:hidden}
+.image img{width:100%;height:100%;object-fit:contain}.question{font-size:17px;line-height:1.55}
+.option{width:100%;padding:13px;margin:8px 0;text-align:left;border:2px solid #e2e8f0;background:#fff;border-radius:11px;font-size:16px;cursor:pointer;transition:.2s}
+.option:hover{background:#eff6ff;border-color:#93c5fd}.option:disabled{cursor:default}.option.correct{background:#dcfce7;border-color:#16a34a;color:#166534;font-weight:bold}.option.wrong{background:#fee2e2;border-color:#ef4444;color:#991b1b;animation:shake .35s}
+.feedback{display:none;padding:12px;border-radius:11px;margin-top:10px;font-weight:bold;line-height:1.5}.feedback.show{display:block}.good{background:#dcfce7;color:#166534;border:1px solid #86efac}.bad{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.next,.restart{width:100%;padding:13px;border:0;border-radius:11px;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;margin-top:12px}.next{background:#2563eb;display:none}.next.show{display:block}.restart{background:#16a34a}
+.result{display:none}.result.show{display:block}.score{width:130px;height:130px;border-radius:50%;margin:10px auto 15px;display:flex;align-items:center;justify-content:center;border:9px solid #60a5fa;background:#eff6ff;color:#1d4ed8;font-size:28px;font-weight:bold}
+.message{text-align:center;font-size:18px;font-weight:bold;margin-bottom:18px}.review{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}.item{padding:12px;border-bottom:1px solid #e5e7eb;line-height:1.5}.item:last-child{border:0}.ok{color:#15803d;font-weight:bold}.no{color:#b91c1c;font-weight:bold}.note{text-align:center;color:#667085;font-size:13px;margin-top:12px}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+</style>
+</head>
+<body>
+<div class="app"><div class="card">
+<div class="top"><h1>🛸 BÀI KIỂM TRA AN TOÀN DRONE HỌC ĐƯỜNG</h1><div class="progress"><div id="fill" class="fill"></div></div></div>
+<div id="quiz" class="content"></div>
+<div id="result" class="result"><h2 style="text-align:center">🎉 KẾT QUẢ BÀI KIỂM TRA</h2><div id="score" class="score">0/4</div><div id="message" class="message"></div><div id="review" class="review"></div><button class="restart" onclick="restart()">🔄 Làm lại bài kiểm tra</button></div>
+</div><div class="note">Bài tương tác có thể nhúng bằng iframe vào CoHoTa.</div></div>
+
+<script>
+const questions=[
+{title:"Tình huống 1: Tầm nhìn (VLOS)",image:"",q:"Nam điều khiển Drone bay khuất sau toà nhà, không còn nhìn thấy bằng mắt thường nhưng Nam vẫn theo dõi qua màn hình điều khiển. Nam làm vậy có sai không?",a:["Chỉ vi phạm nếu drone bay quá 100m","Nam sai vì đã điều khiển drone khuất tầm mắt trực tiếp","Nam bay đúng vì vẫn theo dõi được qua màn hình","Không vi phạm vì dãy cây không phải công trình xây dựng"],c:1,e:"Nam sai vì đã điều khiển drone khuất tầm mắt trực tiếp."},
+{title:"Tình huống 2: An toàn quay phim ngoài trời",image:"",q:"Hải muốn quay video hoạt động ngoài trời của lớp bằng drone. Hải nên làm gì?",a:["Bay thấp và lượn gần đường dây điện để quay được chi tiết hơn","Bay ngay phía trên khu vực học sinh đang đứng để góc quay đẹp hơn","Bay ở góc xa, đủ cao để bao quát cả khu vực hoạt động","Hải không được phép bay drone để quay phim"],c:3,e:"Theo đáp án của bộ câu hỏi hiện tại: Hải không được phép bay drone để quay phim."},
+{title:"Tình huống 3: Quy định sử dụng thiết bị trường học",image:"",q:"Nhóm của Long mượn drone nghiên cứu của trường ra sân. Long và các bạn còn dùng drone bay vòng quanh trêu chọc bạn khác đang chơi. Hành động này có vấn đề gì?",a:["Không sao, vì chỉ là trêu đùa vui và không ai bị thương","Chỉ sai nếu Long làm hỏng drone của trường hoặc gây thương tích cho các bạn khác","Sai, Long không được dùng drone của trường ngoài mục đích học tập và nghiên cứu","Không sao, vì drone vẫn đang bay trong khuôn viên trường"],c:2,e:"Long không được dùng drone của trường ngoài mục đích học tập và nghiên cứu."},
+{title:"Tình huống 4: Quy định bay trong nhà lồng lưới",image:"",q:"Lan bay Drone Soccer Class 20 trong nhà lồng lưới kín, sử dụng drone có vòng bảo vệ 360° và khối lượng dưới 250 g. Trong trường hợp này, Lan có vi phạm quy định không?",a:["Có, vì chỉ drone dưới 200 g mới được phép bay trong nhà","Có, vì drone dưới 250 g vẫn bị cấm bay trong nhà","Có, vì mọi hoạt động bay drone đều phải xin phép","Không vi phạm, vì đáp ứng điều kiện bay trong nhà lồng lưới kín với drone phù hợp"],c:3,e:"Không vi phạm, vì đáp ứng điều kiện bay trong nhà lồng lưới kín với drone phù hợp."}
+];
+let n=0,score=0,chosen=[];
+function render(){
+ const x=questions[n];document.getElementById("fill").style.width=((n+1)/4*100)+"%";
+ let im=x.image?'<img src="'+x.image+'" alt="Hình minh họa">':'🖼️<br><b>HÌNH MINH HỌA TÌNH HUỐNG '+(n+1)+'</b><br><small>Thay URL trong thuộc tính image của câu hỏi</small>';
+ document.getElementById("quiz").innerHTML='<div class="counter">Tình huống '+(n+1)+' / 4</div><h2>'+x.title+'</h2><div class="image">'+im+'</div><div class="question">'+x.q+'</div><div id="opts"></div><div id="fb" class="feedback"></div><button id="next" class="next" onclick="next()">'+(n===3?'🏁 Xem kết quả':'➡️ Câu tiếp theo')+'</button>';
+ x.a.forEach((t,i)=>{let b=document.createElement("button");b.className="option";b.textContent=String.fromCharCode(65+i)+". "+t;b.onclick=()=>answer(i,b);document.getElementById("opts").appendChild(b)});
+}
+function answer(i,b){
+ let x=questions[n],bs=[...document.querySelectorAll(".option")];bs.forEach(z=>z.disabled=true);chosen[n]=i;
+ let fb=document.getElementById("fb");
+ if(i===x.c){score++;b.classList.add("correct");fb.className="feedback show good";fb.innerHTML="✔ CHÍNH XÁC!<br>+1 điểm.<br><span style='font-weight:normal'>"+x.e+"</span>"}
+ else{b.classList.add("wrong");bs[x.c].classList.add("correct");fb.className="feedback show bad";fb.innerHTML="✖ CHƯA ĐÚNG!<br>Đáp án đúng: <b>"+String.fromCharCode(65+x.c)+"</b>.<br><span style='font-weight:normal'>"+x.e+"</span>"}
+ document.getElementById("next").classList.add("show");
+}
+function next(){n++;if(n<4)render();else result()}
+function result(){
+ document.getElementById("quiz").style.display="none";document.getElementById("result").classList.add("show");document.getElementById("fill").style.width="100%";document.getElementById("score").textContent=score+"/4";
+ document.getElementById("message").textContent=score===4?"🏆 Xuất sắc!":score===3?"👍 Rất tốt!":score===2?"📘 Khá tốt! Hãy xem lại các câu sai.":"🔎 Hãy ôn lại nội dung an toàn.";
+ document.getElementById("review").innerHTML=questions.map((x,i)=>{let s=chosen[i],ok=s===x.c;return '<div class="item"><b>Câu '+(i+1)+': '+x.title+'</b><br>Bạn chọn: '+(s==null?'Chưa chọn':String.fromCharCode(65+s)+". "+x.a[s])+'<br>Đáp án đúng: <b>'+String.fromCharCode(65+x.c)+". "+x.a[x.c]+'</b><br><span class="'+(ok?'ok':'no')+'">'+(ok?'✓ Đúng':'✗ Sai')+'</span></div>'}).join("");
+}
+function restart(){n=0;score=0;chosen=[];document.getElementById("result").classList.remove("show");document.getElementById("quiz").style.display="block";render()}
+render();
+</script>
+</body></html>
