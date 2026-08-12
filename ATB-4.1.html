@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra An Toàn Drone Học Đường</title>
+    <!-- Thư viện pháo hoa Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        /* Khung chứa bài trắc nghiệm - Tự động co giãn theo nội dung */
+        .quiz-container {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 550px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 20px 25px;
+            text-align: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Thanh tiến trình */
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 25%;
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .main-title {
+            color: #d93025;
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Khung Ảnh minh họa co giãn linh hoạt */
+        .image-frame {
+            border: none;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+            max-height: 180px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .quiz-image {
+            max-width: 100%;
+            max-height: 170px;
+            width: auto;
+            height: auto;
+            object-fit: contain; 
+            border-radius: 8px;
+        }
+
+        .scenario-title {
+            font-size: 15.5px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #202124;
+        }
+
+        .scenario-desc {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.45;
+            margin-bottom: 15px;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        /* Danh sách đáp án */
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .option-item {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid #e9ecef;
+            user-select: none;
+        }
+
+        .option-item:hover {
+            background-color: #ffffff;
+            border-color: #d93025;
+            box-shadow: 0 3px 10px rgba(217, 48, 37, 0.1);
+        }
+
+        .option-item.selected {
+            border-color: #d93025;
+            background-color: #fff5f5;
+        }
+
+        .option-item input[type="radio"] {
+            margin-right: 12px;
+            accent-color: #d93025;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .option-text {
+            font-size: 13.5px;
+            color: #202124;
+            text-align: left;
+            line-height: 1.35;
+        }
+
+        /* Điều hướng */
+        .action-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .btn-nav {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-nav:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-nav:disabled {
+            background-color: #e0e0e0;
+            color: #a0a0a0;
+            cursor: not-allowed;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: #70757a;
+            font-weight: 600;
+        }
+
+        /* --- MÀN HÌNH KẾT QUẢ --- */
+        .result-view {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .score-box {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
+        }
+
+        .score-number {
+            font-size: 38px;
+            font-weight: 800;
+            margin: 8px 0;
+        }
+
+        .score-message {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .review-title {
+            text-align: left;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #202124;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 6px;
+        }
+
+        .review-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 5px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .review-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+            border-left: 4px solid #ccc;
+            background-color: #f8f9fa;
+        }
+
+        .review-item.is-correct {
+            border-left-color: #34a853;
+            background-color: #e6f4ea;
+        }
+
+        .review-item.is-wrong {
+            border-left-color: #ea4335;
+            background-color: #fce8e6;
+        }
+
+        .review-q-title {
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #202124;
+        }
+
+        .review-correct-ans {
+            font-weight: 600;
+            color: #137333;
+            margin-top: 2px;
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(56, 239, 125, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-restart:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+    
+        /* ===== HIỆU ỨNG ĐÚNG / SAI ===== */
+        .option-item.correct-answer {
+            animation: correctPulse 0.55s ease;
+            border-color: #34a853 !important;
+            background: #e6f4ea !important;
+        }
+
+        .option-item.wrong-answer {
+            animation: wrongShake 0.45s ease;
+            border-color: #ea4335 !important;
+            background: #fce8e6 !important;
+        }
+
+        .answer-feedback {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 800;
+            animation: feedbackIn 0.35s ease;
+        }
+
+        .answer-feedback.correct {
+            color: #137333;
+            background: #e6f4ea;
+            border: 1px solid #34a853;
+        }
+
+        .answer-feedback.wrong {
+            color: #b3261e;
+            background: #fce8e6;
+            border: 1px solid #ea4335;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.025); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-7px); }
+            40% { transform: translateX(7px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+
+        @keyframes feedbackIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .quiz-image {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .quiz-image:hover {
+            transform: scale(1.02);
+        }
+
+</style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <!-- ================= GIAO DIỆN LÀM BÀI ================= -->
+        <div id="quizView">
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+
+            <h1 class="main-title">An Toàn Bay Drone Học Đường</h1>
+            
+            <div class="image-frame" id="imageFrame">
+                <img id="quizImg" src="" alt="Hình minh họa" class="quiz-image">
+            </div>
+
+            <h2 class="scenario-title" id="quizTitle">Tình huống 1</h2>
+            <p class="scenario-desc" id="quizDesc">Nội dung câu hỏi...</p>
+
+            <div class="options-group" id="optionsGroup"></div>
+
+            <div class="action-group">
+                <button class="btn-nav" id="btnPrev" onclick="prevQuestion()" disabled>&lt; Quay lại</button>
+                <span class="progress-text" id="progressText">Tình huống 1 / 4</span>
+            </div>
+        </div>
+
+        <!-- ================= GIAO DIỆN KẾT QUẢ ================= -->
+        <div id="resultView" class="result-view">
+            <h1 class="main-title">KẾT QUẢ BÀI KIỂM TRA</h1>
+            
+            <div class="score-box">
+                <div>Điểm số của bạn</div>
+                <div class="score-number" id="scoreText">0 / 4</div>
+                <div class="score-message" id="scoreMessage">Cố gắng hơn nhé!</div>
+            </div>
+
+            <div class="review-title">Chi tiết câu trả lời:</div>
+            <div class="review-list" id="reviewList"></div>
+
+            <button class="btn-restart" onclick="restartQuiz()">🔄 Làm lại bài kiểm tra</button>
+        </div>
+    </div>
+
+    <script>
+
+/*
+=========================================================
+CÁCH THÊM HÌNH CHO TỪNG TÌNH HUỐNG
+=========================================================
+
+1. Đặt ảnh cùng thư mục với file HTML.
+   Ví dụ:
+   - cau1.jpg
+   - cau2.jpg
+   - cau3.jpg
+   - cau4.jpg
+
+2. Trong từng câu, sửa dòng image:
+   image: "cau1.jpg",
+
+3. Có thể dùng PNG hoặc JPG:
+   image: "cau1.png",
+   image: "cau2.jpg",
+
+4. Nếu ảnh nằm trong thư mục images:
+   image: "images/cau1.jpg",
+
+5. Nếu không muốn có ảnh:
+   image: "",
+
+Ví dụ:
+{
+    title: "Tình huống 1",
+    desc: "Nội dung tình huống...",
+    image: "images/tinh-huong-1.jpg",
+    options: [
+        "Đáp án A",
+        "Đáp án B",
+        "Đáp án C",
+        "Đáp án D"
+    ],
+    correct: 1
+}
+
+LƯU Ý:
+- correct: 0 = A
+- correct: 1 = B
+- correct: 2 = C
+- correct: 3 = D
+=========================================================
+*/
+
+const quizData = [
+    {
+        title: "Drone của Minh bị gió đẩy dần về phía đường dây điện cao thế gần đó. Minh muốn tiếp tục bay vì 'chưa chạm vào dây điện'. Lựa chọn nào đúng trong tình huống này?",        
+        image: "",
+        options: [
+            "Chỉ nguy hiểm nếu drone chạm trực tiếp vào dây điện",
+            "Phải hạ drone xuống ngay",
+            "Có thể tiếp tục nếu bay thấp hơn mức dây điện",
+            "An toàn vì drone có vỏ nhựa cách điện"
+        ],
+        correct: 1
+    },
+    {
+        title: "Trước khi cất cánh Drone, điều em cần kiểm tra đầu tiên về khu vực xung quanh là gì?",        
+        image: "",
+        options: [
+            "Khu vực có đủ ánh sáng để quay phim không",
+            "Mặt đất có bằng phẳng để drone hạ cánh dễ không",
+            "Mặt đất là đất hay bê tông",
+            "Xung quanh có người đang tụ tập hay không"
+        ],
+        correct: 3
+    },
+    {
+        title: "Nhóm của Khoa muốn dùng drone treo một túi đựng dụng cụ thể thao để chuyển qua sân. Hậu quả nào CÓ THỂ xảy ra khi treo vật nặng vào drone?",        
+        image: "",
+        options: [
+            "Drone sẽ tự động cân bằng lại, không ảnh hưởng nhiều",
+            "Drone mất cân bằng, khó kiểm soát, dễ rơi và gây nguy hiểm cho người xung quanh",
+            "Chỉ ảnh hưởng đến tốc độ bay, không ảnh hưởng đến độ an toàn",
+            "Pin sẽ hết nhanh hơn nhưng drone vẫn bay an toàn"
+        ],
+        correct: 1
+    },
+    {
+        title: "Lồng lưới trong thi đấu Drone Soccer có tác dụng gì?",        
+        image: "",
+        options: [
+            "Giúp tín hiệu điều khiển không bị nhiễu",
+            "Giữ drone trong khu vực an toàn, tránh nguy hiểm cho người xung quanh",
+            "Giúp drone bay ổn định hơn khi va chạm",
+            "Tạo không gian riêng để trọng tài quan sát"
+        ],
+        correct: 1
+    },
+    {
+        title: "Nhà của Tuấn ở gần sân bay. Tuấn muốn bay drone trong sân nhà ở độ cao thấp vào buổi sáng sớm khi 'không có máy bay nào'. ",        
+        image: "",
+        options: [
+            "An toàn vì bay trong sân nhà là quyền sở hữu riêng",
+            "Tuyệt đối không được — khu vực gần sân bay có vùng cấm bay nghiêm ngặt.",
+            "Ổn vì drone nhỏ và bay thấp, radar sân bay không phát hiện được",
+            "Tuấn chỉ cần báo sân bay trước 30 phút là được phép"
+        ],
+        correct: 1
+    },
+    {
+        title: "Trước khi cất cánh, An muốn tiết kiệm thời gian nên muốn bỏ qua bước kiểm tra drone. Vì sao việc kiểm tra trước khi bay là bắt buộc?'. ",        
+        image: "",
+        options: [
+            "Để drone khởi động nhanh hơn và tiết kiệm pin",
+            "Để phát hiện sự cố pin, cánh quạt hoặc kết nối trước khi bay, tránh tai nạn",
+            "Vì drone mới mua luôn cần hiệu chỉnh lại trước lần bay đầu",
+            "Vì giáo viên yêu cầu và sẽ bị trừ điểm nếu bỏ qua"
+        ],
+        correct: 1
+    },
+    {
+        title: "Hùng có Drone hợp lệ, pin đầy, muốn bay thử ngay trong sân trường lúc ra chơi. Tại sao Hùng phải xin phép giáo viên để được bay Drone?'. ",        
+        image: "",
+        options: [
+            "Giáo viên sẽ xác nhận khu vực an toàn, giám sát và xử lý nếu có sự cố",
+            "Drone của trường cần có chữ ký giáo viên mới hoạt động được",
+            "Giáo viên cần ghi nhận vào sổ theo dõi thiết bị của trường",
+            "Để giáo viên ghi tên vào danh sách được phép sử dụng thiết bị"
+        ],
+        correct: 0
+    },
+];
+
+let currentQuestion = 0;
+let userAnswers = new Array(quizData.length).fill(null);
+let movingToNext = false;
+
+function loadQuestion() {
+    const q = quizData[currentQuestion];
+
+    document.getElementById("quizTitle").textContent = q.title;
+    document.getElementById("quizDesc").textContent = q.desc;
+    document.getElementById("progressText").textContent =
+        `Tình huống ${currentQuestion + 1} / ${quizData.length}`;
+
+    const percent = ((currentQuestion + 1) / quizData.length) * 100;
+    document.getElementById("progressBar").style.width = percent + "%";
+
+    const optionsGroup = document.getElementById("optionsGroup");
+    optionsGroup.innerHTML = "";
+
+    q.options.forEach((text, index) => {
+        const label = document.createElement("label");
+        label.className = "option-item";
+
+        if (userAnswers[currentQuestion] === index) {
+            label.classList.add("selected");
+        }
+
+        const radio = document.createElement("input");
+        radio.type = "radio";
+        radio.name = "answer";
+        radio.value = index;
+        radio.checked = userAnswers[currentQuestion] === index;
+
+        const span = document.createElement("span");
+        span.className = "option-text";
+        span.textContent = text;
+
+        label.appendChild(radio);
+        label.appendChild(span);
+
+        // Chỉ xử lý một lần cho mỗi lựa chọn
+        label.addEventListener("click", function(e) {
+            e.preventDefault();
+            if (movingToNext) return;
+            selectAnswer(index);
+        });
+
+        optionsGroup.appendChild(label);
+    });
+
+    document.getElementById("btnPrev").disabled = currentQuestion === 0;
+
+    const frame = document.getElementById("imageFrame");
+    const img = document.getElementById("quizImg");
+
+    img.onerror = function() {
+        frame.style.display = "none";
+    };
+
+    img.style.opacity = "0";
+    setTimeout(() => {
+        img.src = q.image || "";
+    }, 120);
+
+    img.onload = function() {
+        frame.style.display = "flex";
+        img.style.opacity = "1";
+    };
+
+    if (!q.image) {
+        frame.style.display = "none";
+    }
+}
+
+function selectAnswer(index) {
+    if (movingToNext) return;
+
+    userAnswers[currentQuestion] = index;
+    movingToNext = true;
+
+    const q = quizData[currentQuestion];
+    const options = document.querySelectorAll(".option-item");
+
+    options.forEach((item, i) => {
+        item.classList.remove("selected", "correct-answer", "wrong-answer");
+
+        const radio = item.querySelector("input");
+        if (radio) radio.checked = i === index;
+
+        if (i === index) {
+            item.classList.add("selected");
+
+            if (index === q.correct) {
+                item.classList.add("correct-answer");
+            } else {
+                item.classList.add("wrong-answer");
+            }
+        }
+
+        // Nếu chọn sai, đồng thời làm nổi bật đáp án đúng
+        if (index !== q.correct && i === q.correct) {
+            item.classList.add("correct-answer");
+        }
+    });
+
+    // Tạo thông báo đúng / sai
+    const oldFeedback = document.getElementById("answerFeedback");
+    if (oldFeedback) oldFeedback.remove();
+
+    const feedback = document.createElement("div");
+    feedback.id = "answerFeedback";
+    feedback.className = "answer-feedback " +
+        (index === q.correct ? "correct" : "wrong");
+
+    if (index === q.correct) {
+        feedback.textContent = "✔ Chính xác! Đáp án đúng.";
+    } else {
+        feedback.textContent =
+            "✖ Chưa đúng! Đáp án đúng là: " + q.options[q.correct];
+    }
+
+    document.getElementById("optionsGroup").appendChild(feedback);
+
+    // Cho người học nhìn thấy hiệu ứng trước khi chuyển câu
+    setTimeout(() => {
+        if (currentQuestion < quizData.length - 1) {
+            currentQuestion++;
+            movingToNext = false;
+            loadQuestion();
+        } else {
+            movingToNext = false;
+            showResults();
+        }
+    }, 1000);
+}
+function prevQuestion() {
+    if (currentQuestion > 0 && !movingToNext) {
+        currentQuestion--;
+        loadQuestion();
+    }
+}
+
+function showResults() {
+    document.getElementById("quizView").style.display = "none";
+    document.getElementById("resultView").style.display = "block";
+
+    let score = 0;
+    const reviewList = document.getElementById("reviewList");
+    reviewList.innerHTML = "";
+
+    quizData.forEach((q, idx) => {
+        const userAnsIndex = userAnswers[idx];
+        const isCorrect = userAnsIndex === q.correct;
+
+        if (isCorrect) score++;
+
+        const item = document.createElement("div");
+        item.className = "review-item " + (isCorrect ? "is-correct" : "is-wrong");
+
+        const title = document.createElement("div");
+        title.className = "review-q-title";
+        title.textContent = `Câu ${idx + 1}: ${q.title}`;
+        item.appendChild(title);
+
+        const desc = document.createElement("div");
+        desc.style.marginBottom = "10px";
+        desc.style.fontWeight = "500";
+        desc.textContent = q.desc;
+        item.appendChild(desc);
+
+        // Hiển thị toàn bộ câu trả lời
+        const answerList = document.createElement("div");
+        answerList.style.display = "flex";
+        answerList.style.flexDirection = "column";
+        answerList.style.gap = "6px";
+
+        q.options.forEach((option, optionIndex) => {
+            const answer = document.createElement("div");
+            answer.style.padding = "8px 10px";
+            answer.style.borderRadius = "7px";
+            answer.style.border = "1px solid #ddd";
+            answer.style.background = "#fff";
+
+            let prefix = String.fromCharCode(65 + optionIndex) + ". ";
+            answer.textContent = prefix + option;
+
+            // Đánh dấu đáp án đúng
+            if (optionIndex === q.correct) {
+                answer.style.border = "2px solid #34a853";
+                answer.style.background = "#e6f4ea";
+                answer.style.color = "#137333";
+                answer.style.fontWeight = "700";
+                answer.textContent += "  ✓ ĐÁP ÁN ĐÚNG";
+            }
+
+            // Đánh dấu đáp án người dùng đã chọn
+            if (optionIndex === userAnsIndex) {
+                answer.style.boxShadow = "inset 4px 0 0 #1a73e8";
+
+                if (optionIndex === q.correct) {
+                    answer.textContent += "  — BẠN CHỌN";
+                } else {
+                    answer.style.border = "2px solid #ea4335";
+                    answer.style.background = "#fce8e6";
+                    answer.style.color = "#b3261e";
+                    answer.textContent += "  ✖ BẠN CHỌN";
+                }
+            }
+
+            answerList.appendChild(answer);
+        });
+
+        item.appendChild(answerList);
+
+        // Kết luận câu hỏi
+        const resultLine = document.createElement("div");
+        resultLine.style.marginTop = "10px";
+        resultLine.style.fontWeight = "700";
+        resultLine.textContent = isCorrect
+            ? "✔ Bạn trả lời đúng"
+            : "✖ Bạn trả lời chưa đúng";
+
+        item.appendChild(resultLine);
+        reviewList.appendChild(item);
+    });
+
+    document.getElementById("scoreText").textContent =
+        `${score} / ${quizData.length}`;
+
+    const msg = document.getElementById("scoreMessage");
+
+    if (score === quizData.length) {
+        msg.textContent = "🏆 Xuất sắc! Bạn đã trả lời đúng tất cả câu hỏi!";
+        if (typeof confetti === "function") {
+            confetti({
+                particleCount: 150,
+                spread: 90,
+                origin: { y: 0.6 }
+            });
+        }
+    } else if (score >= Math.ceil(quizData.length / 2)) {
+        msg.textContent = "👍 Khá tốt! Hãy xem lại các câu chưa đúng nhé.";
+    } else {
+        msg.textContent = "💡 Bạn cần xem lại kiến thức an toàn bay Drone nhé!";
+    }
+}
+function restartQuiz() {
+    currentQuestion = 0;
+    userAnswers = new Array(quizData.length).fill(null);
+    movingToNext = false;
+
+    document.getElementById("resultView").style.display = "none";
+    document.getElementById("quizView").style.display = "block";
+
+    loadQuestion();
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    loadQuestion();
+});
+</script>
+</body>
+</html>
