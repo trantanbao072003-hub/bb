@@ -503,19 +503,33 @@ const quizData = [
     },
 ];
 
+// ===== HÀM XÁO TRỘN NGẪU NHIÊN (Fisher-Yates shuffle) =====
+function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// quizOrder là bản đã xáo trộn, dùng để hiển thị.
+// quizData gốc giữ nguyên, không bị thay đổi.
+let quizOrder = shuffleArray(quizData);
+
 let currentQuestion = 0;
-let userAnswers = new Array(quizData.length).fill(null);
+let userAnswers = new Array(quizOrder.length).fill(null);
 let movingToNext = false;
 
 function loadQuestion() {
-    const q = quizData[currentQuestion];
+    const q = quizOrder[currentQuestion];
 
     document.getElementById("quizTitle").textContent = q.title;
     document.getElementById("quizDesc").textContent = q.desc;
     document.getElementById("progressText").textContent =
-        `Tình huống ${currentQuestion + 1} / ${quizData.length}`;
+        `Tình huống ${currentQuestion + 1} / ${quizOrder.length}`;
 
-    const percent = ((currentQuestion + 1) / quizData.length) * 100;
+    const percent = ((currentQuestion + 1) / quizOrder.length) * 100;
     document.getElementById("progressBar").style.width = percent + "%";
 
     const optionsGroup = document.getElementById("optionsGroup");
@@ -582,7 +596,7 @@ function selectAnswer(index) {
     userAnswers[currentQuestion] = index;
     movingToNext = true;
 
-    const q = quizData[currentQuestion];
+    const q = quizOrder[currentQuestion];
     const options = document.querySelectorAll(".option-item");
 
     options.forEach((item, i) => {
@@ -627,7 +641,7 @@ function selectAnswer(index) {
 
     // Cho người học nhìn thấy hiệu ứng trước khi chuyển câu
     setTimeout(() => {
-        if (currentQuestion < quizData.length - 1) {
+        if (currentQuestion < quizOrder.length - 1) {
             currentQuestion++;
             movingToNext = false;
             loadQuestion();
@@ -652,7 +666,7 @@ function showResults() {
     const reviewList = document.getElementById("reviewList");
     reviewList.innerHTML = "";
 
-    quizData.forEach((q, idx) => {
+    quizOrder.forEach((q, idx) => {
         const userAnsIndex = userAnswers[idx];
         const isCorrect = userAnsIndex === q.correct;
 
@@ -729,11 +743,11 @@ function showResults() {
     });
 
     document.getElementById("scoreText").textContent =
-        `${score} / ${quizData.length}`;
+        `${score} / ${quizOrder.length}`;
 
     const msg = document.getElementById("scoreMessage");
 
-    if (score === quizData.length) {
+    if (score === quizOrder.length) {
         msg.textContent = "🏆 Xuất sắc! Bạn đã trả lời đúng tất cả câu hỏi!";
         if (typeof confetti === "function") {
             confetti({
@@ -742,15 +756,18 @@ function showResults() {
                 origin: { y: 0.6 }
             });
         }
-    } else if (score >= Math.ceil(quizData.length / 2)) {
+    } else if (score >= Math.ceil(quizOrder.length / 2)) {
         msg.textContent = "👍 Khá tốt! Hãy xem lại các câu chưa đúng nhé.";
     } else {
         msg.textContent = "💡 Bạn cần xem lại kiến thức an toàn bay Drone nhé!";
     }
 }
 function restartQuiz() {
+    // Xáo trộn lại thứ tự câu hỏi mỗi lần làm lại bài
+    quizOrder = shuffleArray(quizData);
+
     currentQuestion = 0;
-    userAnswers = new Array(quizData.length).fill(null);
+    userAnswers = new Array(quizOrder.length).fill(null);
     movingToNext = false;
 
     document.getElementById("resultView").style.display = "none";
