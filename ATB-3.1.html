@@ -1,61 +1,569 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>An Toàn Bay Drone Học Đường</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#eef2f7;font-family:Arial,sans-serif;color:#172033}
-.app{max-width:760px;margin:20px auto;padding:12px}.card{background:white;border-radius:18px;box-shadow:0 8px 25px #0002;overflow:hidden}
-.top{text-align:center;padding:18px 20px 10px}.top h1{margin:0;color:#ef3f3f;font-size:23px}
-.progress{height:9px;background:#e5e7eb;border-radius:9px;margin-top:12px;overflow:hidden}.fill{height:100%;width:25%;background:#ff554d;transition:.3s}
-.content,.result{padding:20px}.counter{text-align:right;color:#667085;font-weight:bold;font-size:14px}
-h2{color:#df3030;font-size:21px}.image{height:210px;background:#f5f7fa;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;color:#64748b;margin-bottom:15px;border:1px dashed #cbd5e1;overflow:hidden}
-.image img{width:100%;height:100%;object-fit:contain}.question{font-size:17px;line-height:1.55}
-.option{width:100%;padding:13px;margin:8px 0;text-align:left;border:2px solid #e2e8f0;background:#fff;border-radius:11px;font-size:16px;cursor:pointer;transition:.2s}
-.option:hover{background:#eff6ff;border-color:#93c5fd}.option:disabled{cursor:default}.option.correct{background:#dcfce7;border-color:#16a34a;color:#166534;font-weight:bold}.option.wrong{background:#fee2e2;border-color:#ef4444;color:#991b1b;animation:shake .35s}
-.feedback{display:none;padding:12px;border-radius:11px;margin-top:10px;font-weight:bold;line-height:1.5}.feedback.show{display:block}.good{background:#dcfce7;color:#166534;border:1px solid #86efac}.bad{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
-.next,.restart{width:100%;padding:13px;border:0;border-radius:11px;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;margin-top:12px}.next{background:#2563eb;display:none}.next.show{display:block}.restart{background:#16a34a}
-.result{display:none}.result.show{display:block}.score{width:130px;height:130px;border-radius:50%;margin:10px auto 15px;display:flex;align-items:center;justify-content:center;border:9px solid #60a5fa;background:#eff6ff;color:#1d4ed8;font-size:28px;font-weight:bold}
-.message{text-align:center;font-size:18px;font-weight:bold;margin-bottom:18px}.review{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}.item{padding:12px;border-bottom:1px solid #e5e7eb;line-height:1.5}.item:last-child{border:0}.ok{color:#15803d;font-weight:bold}.no{color:#b91c1c;font-weight:bold}.note{text-align:center;color:#667085;font-size:13px;margin-top:12px}
-@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>An Toàn Bay Drone Học Đường</title>
+    <!-- Thư viện pháo hoa Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        /* Khung chứa bài trắc nghiệm - Tự động co giãn theo nội dung */
+        .quiz-container {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 550px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 20px 25px;
+            text-align: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Thanh tiến trình */
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 25%;
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .main-title {
+            color: #d93025;
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Khung Ảnh minh họa co giãn linh hoạt */
+        .image-frame {
+            border: none;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+            max-height: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .quiz-image {
+            max-width: 100%;
+            max-height: 170px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .scenario-title {
+            font-size: 15.5px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #202124;
+        }
+
+        .scenario-desc {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.45;
+            margin-bottom: 15px;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        /* Danh sách đáp án */
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .option-item {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid #e9ecef;
+            user-select: none;
+        }
+
+        .option-item:hover {
+            background-color: #ffffff;
+            border-color: #d93025;
+            box-shadow: 0 3px 10px rgba(217, 48, 37, 0.1);
+        }
+
+        .option-item.selected {
+            border-color: #d93025;
+            background-color: #fff5f5;
+        }
+
+        .option-item input[type="radio"] {
+            margin-right: 12px;
+            accent-color: #d93025;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .option-text {
+            font-size: 13.5px;
+            color: #202124;
+            text-align: left;
+            line-height: 1.35;
+        }
+
+        /* Điều hướng */
+        .action-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .btn-nav {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-nav:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-nav:disabled {
+            background-color: #e0e0e0;
+            color: #a0a0a0;
+            cursor: not-allowed;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: #70757a;
+            font-weight: 600;
+        }
+
+        /* --- MÀN HÌNH KẾT QUẢ --- */
+        .result-view {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .score-box {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
+        }
+
+        .score-number {
+            font-size: 38px;
+            font-weight: 800;
+            margin: 8px 0;
+        }
+
+        .score-message {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .review-title {
+            text-align: left;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #202124;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 6px;
+        }
+
+        .review-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 5px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .review-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+            border-left: 4px solid #ccc;
+            background-color: #f8f9fa;
+        }
+
+        .review-item.is-correct {
+            border-left-color: #34a853;
+            background-color: #e6f4ea;
+        }
+
+        .review-item.is-wrong {
+            border-left-color: #ea4335;
+            background-color: #fce8e6;
+        }
+
+        .review-q-title {
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #202124;
+        }
+
+        .review-correct-ans {
+            font-weight: 600;
+            color: #137333;
+            margin-top: 2px;
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(56, 239, 125, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-restart:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        /* ===== HIỆU ỨNG ĐÚNG / SAI ===== */
+        .option-item.correct-answer {
+            animation: correctPulse 0.55s ease;
+            border-color: #34a853 !important;
+            background: #e6f4ea !important;
+        }
+
+        .option-item.wrong-answer {
+            animation: wrongShake 0.45s ease;
+            border-color: #ea4335 !important;
+            background: #fce8e6 !important;
+        }
+
+        .answer-feedback {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 800;
+            animation: feedbackIn 0.35s ease;
+        }
+
+        .answer-feedback.correct {
+            color: #137333;
+            background: #e6f4ea;
+            border: 1px solid #34a853;
+        }
+
+        .answer-feedback.wrong {
+            color: #b3261e;
+            background: #fce8e6;
+            border: 1px solid #ea4335;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.025); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-7px); }
+            40% { transform: translateX(7px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+
+        @keyframes feedbackIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .quiz-image {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .quiz-image:hover {
+            transform: scale(1.02);
+        }
 </style>
 </head>
 <body>
-<div class="app"><div class="card">
-<div class="top"><h1>🛸 BÀI KIỂM TRA AN TOÀN DRONE HỌC ĐƯỜNG</h1><div class="progress"><div id="fill" class="fill"></div></div></div>
-<div id="quiz" class="content"></div>
-<div id="result" class="result"><h2 style="text-align:center">🎉 KẾT QUẢ BÀI KIỂM TRA</h2><div id="score" class="score">0/4</div><div id="message" class="message"></div><div id="review" class="review"></div><button class="restart" onclick="restart()">🔄 Làm lại bài kiểm tra</button></div>
-</div><div class="note">Bài tương tác có thể nhúng bằng iframe vào CoHoTa.</div></div>
 
-<script>
+    <div class="quiz-container">
+        <!-- ================= GIAO DIỆN LÀM BÀI ================= -->
+        <div id="quizView">
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="fill"></div>
+            </div>
+
+            <h1 class="main-title">🛸 An Toàn Bay Drone Học Đường</h1>
+
+            <div class="image-frame" id="imageFrame">
+                <img id="quizImg" src="" alt="Hình minh họa" class="quiz-image">
+            </div>
+
+            <h2 class="scenario-title" id="quizTitle">Tình huống 1</h2>
+            <p class="scenario-desc" id="quizDesc">Nội dung câu hỏi...</p>
+
+            <div class="options-group" id="opts"></div>
+
+            <div class="action-group">
+                <span class="progress-text" id="counter">Tình huống 1 / 4</span>
+            </div>
+        </div>
+
+        <!-- ================= GIAO DIỆN KẾT QUẢ ================= -->
+        <div id="resultView" class="result-view">
+            <h1 class="main-title">🎉 KẾT QUẢ BÀI KIỂM TRA</h1>
+
+            <div class="score-box">
+                <div>Điểm số của bạn</div>
+                <div class="score-number" id="score">0 / 4</div>
+                <div class="score-message" id="message">Cố gắng hơn nhé!</div>
+            </div>
+
+            <div class="review-title">Chi tiết câu trả lời:</div>
+            <div class="review-list" id="review"></div>
+
+            <button class="btn-restart" onclick="restart()">🔄 Làm lại bài kiểm tra</button>
+        </div>
+    </div>
+
+    <script>
 const questions=[
 {title:"Tình huống 1: Tầm nhìn (VLOS)",image:"tinhhuong1.png",q:"Nam điều khiển Drone bay khuất sau toà nhà, không còn nhìn thấy bằng mắt thường nhưng Nam vẫn theo dõi qua màn hình điều khiển. Nam làm vậy có sai không?",a:["Chỉ vi phạm nếu drone bay quá 100m","Nam sai vì đã điều khiển drone khuất tầm mắt trực tiếp","Nam bay đúng vì vẫn theo dõi được qua màn hình","Không vi phạm vì dãy cây không phải công trình xây dựng"],c:1,e:"Nam sai vì đã điều khiển drone khuất tầm mắt trực tiếp."},
 {title:"Tình huống 2: An toàn quay phim ngoài trời",image:"tinhhuong2.png",q:"Hải muốn quay video hoạt động ngoài trời của lớp bằng drone. Hải nên làm gì?",a:["Bay thấp và lượn gần đường dây điện để quay được chi tiết hơn","Bay ngay phía trên khu vực học sinh đang đứng để góc quay đẹp hơn","Bay ở góc xa, đủ cao để bao quát cả khu vực hoạt động","Hải không được phép bay drone để quay phim"],c:3,e:"Theo đáp án của bộ câu hỏi hiện tại: Hải không được phép bay drone để quay phim."},
 {title:"Tình huống 3: Quy định sử dụng thiết bị trường học",image:"tinhhuong3.png",q:"Nhóm của Long mượn drone nghiên cứu của trường ra sân. Long và các bạn còn dùng drone bay vòng quanh trêu chọc bạn khác đang chơi. Hành động này có vấn đề gì?",a:["Không sao, vì chỉ là trêu đùa vui và không ai bị thương","Chỉ sai nếu Long làm hỏng drone của trường hoặc gây thương tích cho các bạn khác","Sai, Long không được dùng drone của trường ngoài mục đích học tập và nghiên cứu","Không sao, vì drone vẫn đang bay trong khuôn viên trường"],c:2,e:"Long không được dùng drone của trường ngoài mục đích học tập và nghiên cứu."},
 {title:"Tình huống 4: Quy định bay trong nhà lồng lưới",image:"tinhhuong4.png",q:"Lan bay Drone Soccer Class 20 trong nhà lồng lưới kín, sử dụng drone có vòng bảo vệ 360° và khối lượng dưới 250 g. Trong trường hợp này, Lan có vi phạm quy định không?",a:["Có, vì chỉ drone dưới 200 g mới được phép bay trong nhà","Có, vì drone dưới 250 g vẫn bị cấm bay trong nhà","Có, vì mọi hoạt động bay drone đều phải xin phép","Không vi phạm, vì đáp ứng điều kiện bay trong nhà lồng lưới kín với drone phù hợp"],c:3,e:"Không vi phạm, vì đáp ứng điều kiện bay trong nhà lồng lưới kín với drone phù hợp."}
 ];
-let n=0,score=0,chosen=[];
+
+// ===== Hàm xáo trộn mảng (Fisher-Yates) =====
+function shuffleArray(array){
+ const arr=array.slice();
+ for(let i=arr.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [arr[i],arr[j]]=[arr[j],arr[i]];
+ }
+ return arr;
+}
+
+// ===== Tạo bộ câu hỏi đã xáo trộn (thứ tự câu hỏi + thứ tự đáp án) =====
+function buildShuffledQuiz(){
+ const shuffledQuestions=shuffleArray(questions);
+ return shuffledQuestions.map(x=>{
+  const optionIndices=x.a.map((_,idx)=>idx);
+  const shuffledIndices=shuffleArray(optionIndices);
+  const newA=shuffledIndices.map(idx=>x.a[idx]);
+  const newC=shuffledIndices.indexOf(x.c);
+  return{title:x.title,image:x.image,q:x.q,a:newA,c:newC,e:x.e};
+ });
+}
+
+let activeQuiz=buildShuffledQuiz();
+let n=0,score=0,chosen=[],answered=false;
+
 function render(){
- const x=questions[n];document.getElementById("fill").style.width=((n+1)/4*100)+"%";
- let im=x.image?'<img src="'+x.image+'" alt="Hình minh họa">':'🖼️<br><b>HÌNH MINH HỌA TÌNH HUỐNG '+(n+1)+'</b><br><small>Thay URL trong thuộc tính image của câu hỏi</small>';
- document.getElementById("quiz").innerHTML='<div class="counter">Tình huống '+(n+1)+' / 4</div><h2>'+x.title+'</h2><div class="image">'+im+'</div><div class="question">'+x.q+'</div><div id="opts"></div><div id="fb" class="feedback"></div><button id="next" class="next" onclick="next()">'+(n===3?'🏁 Xem kết quả':'➡️ Câu tiếp theo')+'</button>';
- x.a.forEach((t,i)=>{let b=document.createElement("button");b.className="option";b.textContent=String.fromCharCode(65+i)+". "+t;b.onclick=()=>answer(i,b);document.getElementById("opts").appendChild(b)});
+ const x=activeQuiz[n];
+ answered=false;
+
+ document.getElementById("fill").style.width=((n+1)/activeQuiz.length*100)+"%";
+ document.getElementById("quizTitle").textContent=x.title;
+ document.getElementById("quizDesc").textContent=x.q;
+ document.getElementById("counter").textContent="Tình huống "+(n+1)+" / "+activeQuiz.length;
+
+ const frame=document.getElementById("imageFrame");
+ const img=document.getElementById("quizImg");
+ img.onerror=function(){ frame.style.display="none"; };
+ img.style.opacity="0";
+ setTimeout(()=>{ img.src=x.image||""; },120);
+ img.onload=function(){ frame.style.display="flex"; img.style.opacity="1"; };
+ if(!x.image){ frame.style.display="none"; }
+
+ const opts=document.getElementById("opts");
+ opts.innerHTML="";
+ x.a.forEach((t,i)=>{
+  const item=document.createElement("div");
+  item.className="option-item";
+  const span=document.createElement("span");
+  span.className="option-text";
+  span.textContent=String.fromCharCode(65+i)+". "+t;
+  item.appendChild(span);
+  item.addEventListener("click",function(){ answer(i,item); });
+  opts.appendChild(item);
+ });
 }
-function answer(i,b){
- let x=questions[n],bs=[...document.querySelectorAll(".option")];bs.forEach(z=>z.disabled=true);chosen[n]=i;
- let fb=document.getElementById("fb");
- if(i===x.c){score++;b.classList.add("correct");fb.className="feedback show good";fb.innerHTML="✔ CHÍNH XÁC!<br>+1 điểm.<br><span style='font-weight:normal'>"+x.e+"</span>"}
- else{b.classList.add("wrong");bs[x.c].classList.add("correct");fb.className="feedback show bad";fb.innerHTML="✖ CHƯA ĐÚNG!<br>Đáp án đúng: <b>"+String.fromCharCode(65+x.c)+"</b>.<br><span style='font-weight:normal'>"+x.e+"</span>"}
- document.getElementById("next").classList.add("show");
+
+function answer(i,el){
+ if(answered) return;
+ answered=true;
+
+ const x=activeQuiz[n];
+ chosen[n]=i;
+ const items=document.querySelectorAll(".option-item");
+
+ items.forEach((item,idx)=>{
+  if(idx===i){
+   item.classList.add(idx===x.c?"correct-answer":"wrong-answer");
+  }
+  if(idx===x.c && i!==x.c){
+   item.classList.add("correct-answer");
+  }
+ });
+
+ if(i===x.c) score++;
+
+ const old=document.getElementById("answerFeedback");
+ if(old) old.remove();
+
+ const fb=document.createElement("div");
+ fb.id="answerFeedback";
+ fb.className="answer-feedback "+(i===x.c?"correct":"wrong");
+ fb.textContent=(i===x.c?"✔ CHÍNH XÁC! ":"✖ CHƯA ĐÚNG! Đáp án đúng: "+String.fromCharCode(65+x.c)+". ")+x.e;
+ document.getElementById("opts").appendChild(fb);
+
+ setTimeout(()=>{
+  if(n<activeQuiz.length-1){
+   n++;
+   render();
+  } else {
+   result();
+  }
+ },1500);
 }
-function next(){n++;if(n<4)render();else result()}
+
 function result(){
- document.getElementById("quiz").style.display="none";document.getElementById("result").classList.add("show");document.getElementById("fill").style.width="100%";document.getElementById("score").textContent=score+"/4";
- document.getElementById("message").textContent=score===4?"🏆 Xuất sắc!":score===3?"👍 Rất tốt!":score===2?"📘 Khá tốt! Hãy xem lại các câu sai.":"🔎 Hãy ôn lại nội dung an toàn.";
- document.getElementById("review").innerHTML=questions.map((x,i)=>{let s=chosen[i],ok=s===x.c;return '<div class="item"><b>Câu '+(i+1)+': '+x.title+'</b><br>Bạn chọn: '+(s==null?'Chưa chọn':String.fromCharCode(65+s)+". "+x.a[s])+'<br>Đáp án đúng: <b>'+String.fromCharCode(65+x.c)+". "+x.a[x.c]+'</b><br><span class="'+(ok?'ok':'no')+'">'+(ok?'✓ Đúng':'✗ Sai')+'</span></div>'}).join("");
+ document.getElementById("quizView").style.display="none";
+ document.getElementById("resultView").style.display="block";
+
+ document.getElementById("score").textContent=score+" / "+activeQuiz.length;
+
+ const msg=document.getElementById("message");
+ if(score===activeQuiz.length){
+  msg.textContent="🏆 Xuất sắc!";
+  if(typeof confetti==="function"){
+   confetti({particleCount:150,spread:90,origin:{y:0.6}});
+  }
+ } else if(score===activeQuiz.length-1){
+  msg.textContent="👍 Rất tốt!";
+ } else if(score>=Math.ceil(activeQuiz.length/2)){
+  msg.textContent="📘 Khá tốt! Hãy xem lại các câu sai.";
+ } else {
+  msg.textContent="🔎 Hãy ôn lại nội dung an toàn.";
+ }
+
+ const review=document.getElementById("review");
+ review.innerHTML="";
+ activeQuiz.forEach((x,i)=>{
+  const s=chosen[i];
+  const ok=s===x.c;
+
+  const item=document.createElement("div");
+  item.className="review-item "+(ok?"is-correct":"is-wrong");
+
+  const title=document.createElement("div");
+  title.className="review-q-title";
+  title.textContent="Câu "+(i+1)+": "+x.title;
+  item.appendChild(title);
+
+  const desc=document.createElement("div");
+  desc.style.marginBottom="6px";
+  desc.textContent=x.q;
+  item.appendChild(desc);
+
+  const chosenLine=document.createElement("div");
+  chosenLine.textContent="Bạn chọn: "+(s==null?"Chưa chọn":String.fromCharCode(65+s)+". "+x.a[s]);
+  item.appendChild(chosenLine);
+
+  const correctLine=document.createElement("div");
+  correctLine.className="review-correct-ans";
+  correctLine.textContent="Đáp án đúng: "+String.fromCharCode(65+x.c)+". "+x.a[x.c];
+  item.appendChild(correctLine);
+
+  const resultLine=document.createElement("div");
+  resultLine.style.marginTop="4px";
+  resultLine.style.fontWeight="700";
+  resultLine.style.color=ok?"#137333":"#b3261e";
+  resultLine.textContent=ok?"✔ Đúng":"✖ Sai";
+  item.appendChild(resultLine);
+
+  review.appendChild(item);
+ });
 }
-function restart(){n=0;score=0;chosen=[];document.getElementById("result").classList.remove("show");document.getElementById("quiz").style.display="block";render()}
-render();
+
+function restart(){
+ activeQuiz=buildShuffledQuiz();
+ n=0; score=0; chosen=[]; answered=false;
+ document.getElementById("resultView").style.display="none";
+ document.getElementById("quizView").style.display="block";
+ render();
+}
+
+document.addEventListener("DOMContentLoaded",render);
 </script>
-</body></html>
+</body>
+</html>
