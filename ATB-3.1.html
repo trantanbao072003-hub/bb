@@ -361,7 +361,7 @@
                 <div class="progress-bar-fill" id="fill"></div>
             </div>
 
-            <h1 class="main-title">🛸 An Toàn Bay Drone Học Đường</h1>
+            <h1 class="main-title">An Toàn Bay Drone Học Đường</h1>
 
             <div class="image-frame" id="imageFrame">
                 <img id="quizImg" src="" alt="Hình minh họa" class="quiz-image">
@@ -379,7 +379,7 @@
 
         <!-- ================= GIAO DIỆN KẾT QUẢ ================= -->
         <div id="resultView" class="result-view">
-            <h1 class="main-title">🎉 KẾT QUẢ BÀI KIỂM TRA</h1>
+            <h1 class="main-title">KẾT QUẢ BÀI KIỂM TRA</h1>
 
             <div class="score-box">
                 <div>Điểm số của bạn</div>
@@ -483,7 +483,7 @@ function answer(i,el){
  const fb=document.createElement("div");
  fb.id="answerFeedback";
  fb.className="answer-feedback "+(i===x.c?"correct":"wrong");
- fb.textContent=(i===x.c?"✔ CHÍNH XÁC! ":"✖ CHƯA ĐÚNG! Đáp án đúng: "+String.fromCharCode(65+x.c)+". ")+x.e;
+ fb.textContent=(i===x.c?"✔ Chính xác! Đáp án đúng.":"✖ Chưa đúng! Đáp án đúng là: "+x.a[x.c]);
  document.getElementById("opts").appendChild(fb);
 
  setTimeout(()=>{
@@ -493,7 +493,7 @@ function answer(i,el){
   } else {
    result();
   }
- },1500);
+ },1000);
 }
 
 function result(){
@@ -504,26 +504,24 @@ function result(){
 
  const msg=document.getElementById("message");
  if(score===activeQuiz.length){
-  msg.textContent="🏆 Xuất sắc!";
+  msg.textContent="🏆 Xuất sắc! Bạn đã trả lời đúng tất cả câu hỏi!";
   if(typeof confetti==="function"){
    confetti({particleCount:150,spread:90,origin:{y:0.6}});
   }
- } else if(score===activeQuiz.length-1){
-  msg.textContent="👍 Rất tốt!";
  } else if(score>=Math.ceil(activeQuiz.length/2)){
-  msg.textContent="📘 Khá tốt! Hãy xem lại các câu sai.";
+  msg.textContent="👍 Khá tốt! Hãy xem lại các câu chưa đúng nhé.";
  } else {
-  msg.textContent="🔎 Hãy ôn lại nội dung an toàn.";
+  msg.textContent="💡 Bạn cần xem lại kiến thức an toàn bay Drone nhé!";
  }
 
  const review=document.getElementById("review");
  review.innerHTML="";
  activeQuiz.forEach((x,i)=>{
-  const s=chosen[i];
-  const ok=s===x.c;
+  const userAnsIndex=chosen[i];
+  const isCorrect=userAnsIndex===x.c;
 
   const item=document.createElement("div");
-  item.className="review-item "+(ok?"is-correct":"is-wrong");
+  item.className="review-item "+(isCorrect?"is-correct":"is-wrong");
 
   const title=document.createElement("div");
   title.className="review-q-title";
@@ -531,24 +529,60 @@ function result(){
   item.appendChild(title);
 
   const desc=document.createElement("div");
-  desc.style.marginBottom="6px";
+  desc.style.marginBottom="10px";
+  desc.style.fontWeight="500";
   desc.textContent=x.q;
   item.appendChild(desc);
 
-  const chosenLine=document.createElement("div");
-  chosenLine.textContent="Bạn chọn: "+(s==null?"Chưa chọn":String.fromCharCode(65+s)+". "+x.a[s]);
-  item.appendChild(chosenLine);
+  // Hiển thị toàn bộ câu trả lời
+  const answerList=document.createElement("div");
+  answerList.style.display="flex";
+  answerList.style.flexDirection="column";
+  answerList.style.gap="6px";
 
-  const correctLine=document.createElement("div");
-  correctLine.className="review-correct-ans";
-  correctLine.textContent="Đáp án đúng: "+String.fromCharCode(65+x.c)+". "+x.a[x.c];
-  item.appendChild(correctLine);
+  x.a.forEach((option,optionIndex)=>{
+   const answer=document.createElement("div");
+   answer.style.padding="8px 10px";
+   answer.style.borderRadius="7px";
+   answer.style.border="1px solid #ddd";
+   answer.style.background="#fff";
 
+   let prefix=String.fromCharCode(65+optionIndex)+". ";
+   answer.textContent=prefix+option;
+
+   // Đánh dấu đáp án đúng
+   if(optionIndex===x.c){
+    answer.style.border="2px solid #34a853";
+    answer.style.background="#e6f4ea";
+    answer.style.color="#137333";
+    answer.style.fontWeight="700";
+    answer.textContent+="  ✓ ĐÁP ÁN ĐÚNG";
+   }
+
+   // Đánh dấu đáp án người dùng đã chọn
+   if(optionIndex===userAnsIndex){
+    answer.style.boxShadow="inset 4px 0 0 #1a73e8";
+
+    if(optionIndex===x.c){
+     answer.textContent+="  — BẠN CHỌN";
+    } else {
+     answer.style.border="2px solid #ea4335";
+     answer.style.background="#fce8e6";
+     answer.style.color="#b3261e";
+     answer.textContent+="  ✖ BẠN CHỌN";
+    }
+   }
+
+   answerList.appendChild(answer);
+  });
+
+  item.appendChild(answerList);
+
+  // Kết luận câu hỏi
   const resultLine=document.createElement("div");
-  resultLine.style.marginTop="4px";
+  resultLine.style.marginTop="10px";
   resultLine.style.fontWeight="700";
-  resultLine.style.color=ok?"#137333":"#b3261e";
-  resultLine.textContent=ok?"✔ Đúng":"✖ Sai";
+  resultLine.textContent=isCorrect?"✔ Bạn trả lời đúng":"✖ Bạn trả lời chưa đúng";
   item.appendChild(resultLine);
 
   review.appendChild(item);
