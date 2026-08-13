@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>An Toàn Bay Drone Học Đường</title>
+    <title>Bài Kiểm Tra An Toàn Drone Học Đường</title>
     <!-- Thư viện pháo hoa Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
+    
     <style>
         * {
             box-sizing: border-box;
@@ -75,7 +75,7 @@
             padding: 5px;
             margin-bottom: 15px;
             background-color: #f8f9fa;
-            max-height: 180px;
+            max-height: 180px; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -87,7 +87,7 @@
             max-height: 170px;
             width: auto;
             height: auto;
-            object-fit: contain;
+            object-fit: contain; 
             border-radius: 8px;
         }
 
@@ -289,7 +289,7 @@
             opacity: 0.95;
             transform: translateY(-1px);
         }
-
+    
         /* ===== HIỆU ỨNG ĐÚNG / SAI ===== */
         .option-item.correct-answer {
             animation: correctPulse 0.55s ease;
@@ -350,6 +350,7 @@
         .quiz-image:hover {
             transform: scale(1.02);
         }
+
 </style>
 </head>
 <body>
@@ -358,11 +359,11 @@
         <!-- ================= GIAO DIỆN LÀM BÀI ================= -->
         <div id="quizView">
             <div class="progress-bar-container">
-                <div class="progress-bar-fill" id="fill"></div>
+                <div class="progress-bar-fill" id="progressBar"></div>
             </div>
 
             <h1 class="main-title">An Toàn Bay Drone Học Đường</h1>
-
+            
             <div class="image-frame" id="imageFrame">
                 <img id="quizImg" src="" alt="Hình minh họa" class="quiz-image">
             </div>
@@ -370,234 +371,422 @@
             <h2 class="scenario-title" id="quizTitle">Tình huống 1</h2>
             <p class="scenario-desc" id="quizDesc">Nội dung câu hỏi...</p>
 
-            <div class="options-group" id="opts"></div>
+            <div class="options-group" id="optionsGroup"></div>
 
             <div class="action-group">
-                <span class="progress-text" id="counter">Tình huống 1 / 4</span>
+                <button class="btn-nav" id="btnPrev" onclick="prevQuestion()" disabled>&lt; Quay lại</button>
+                <span class="progress-text" id="progressText">Tình huống 1 / 4</span>
             </div>
         </div>
 
         <!-- ================= GIAO DIỆN KẾT QUẢ ================= -->
         <div id="resultView" class="result-view">
             <h1 class="main-title">KẾT QUẢ BÀI KIỂM TRA</h1>
-
+            
             <div class="score-box">
                 <div>Điểm số của bạn</div>
-                <div class="score-number" id="score">0 / 4</div>
-                <div class="score-message" id="message">Cố gắng hơn nhé!</div>
+                <div class="score-number" id="scoreText">0 / 4</div>
+                <div class="score-message" id="scoreMessage">Cố gắng hơn nhé!</div>
             </div>
 
             <div class="review-title">Chi tiết câu trả lời:</div>
-            <div class="review-list" id="review"></div>
+            <div class="review-list" id="reviewList"></div>
 
-            <button class="btn-restart" onclick="restart()">🔄 Làm lại bài kiểm tra</button>
+            <button class="btn-restart" onclick="restartQuiz()">🔄 Làm lại bài kiểm tra</button>
         </div>
     </div>
 
     <script>
-const questions=[
-{title:"Tình huống 1: Tầm nhìn (VLOS)",image:"tinhhuong1.png",q:"Nam điều khiển Drone bay khuất sau toà nhà, không còn nhìn thấy bằng mắt thường nhưng Nam vẫn theo dõi qua màn hình điều khiển. Nam làm vậy có sai không?",a:["Chỉ vi phạm nếu drone bay quá 100m","Nam sai vì đã điều khiển drone khuất tầm mắt trực tiếp","Nam bay đúng vì vẫn theo dõi được qua màn hình","Không vi phạm vì dãy cây không phải công trình xây dựng"],c:1,e:"Nam sai vì đã điều khiển drone khuất tầm mắt trực tiếp."},
-{title:"Tình huống 2: An toàn quay phim ngoài trời",image:"tinhhuong2.png",q:"Hải muốn quay video hoạt động ngoài trời của lớp bằng drone. Hải nên làm gì?",a:["Bay thấp và lượn gần đường dây điện để quay được chi tiết hơn","Bay ngay phía trên khu vực học sinh đang đứng để góc quay đẹp hơn","Bay ở góc xa, đủ cao để bao quát cả khu vực hoạt động","Hải không được phép bay drone để quay phim"],c:3,e:"Theo đáp án của bộ câu hỏi hiện tại: Hải không được phép bay drone để quay phim."},
-{title:"Tình huống 3: Quy định sử dụng thiết bị trường học",image:"tinhhuong3.png",q:"Nhóm của Long mượn drone nghiên cứu của trường ra sân. Long và các bạn còn dùng drone bay vòng quanh trêu chọc bạn khác đang chơi. Hành động này có vấn đề gì?",a:["Không sao, vì chỉ là trêu đùa vui và không ai bị thương","Chỉ sai nếu Long làm hỏng drone của trường hoặc gây thương tích cho các bạn khác","Sai, Long không được dùng drone của trường ngoài mục đích học tập và nghiên cứu","Không sao, vì drone vẫn đang bay trong khuôn viên trường"],c:2,e:"Long không được dùng drone của trường ngoài mục đích học tập và nghiên cứu."},
-{title:"Tình huống 4: Quy định bay trong nhà lồng lưới",image:"tinhhuong4.png",q:"Lan bay Drone Soccer Class 20 trong nhà lồng lưới kín, sử dụng drone có vòng bảo vệ 360° và khối lượng dưới 250 g. Trong trường hợp này, Lan có vi phạm quy định không?",a:["Có, vì chỉ drone dưới 200 g mới được phép bay trong nhà","Có, vì drone dưới 250 g vẫn bị cấm bay trong nhà","Có, vì mọi hoạt động bay drone đều phải xin phép","Không vi phạm, vì đáp ứng điều kiện bay trong nhà lồng lưới kín với drone phù hợp"],c:3,e:"Không vi phạm, vì đáp ứng điều kiện bay trong nhà lồng lưới kín với drone phù hợp."}
+
+/*
+=========================================================
+CÁCH THÊM HÌNH CHO TỪNG TÌNH HUỐNG
+=========================================================
+
+1. Đặt ảnh cùng thư mục với file HTML.
+   Ví dụ:
+   - cau1.jpg
+   - cau2.jpg
+   - cau3.jpg
+   - cau4.jpg
+
+2. Trong từng câu, sửa dòng image:
+   image: "cau1.jpg",
+
+3. Có thể dùng PNG hoặc JPG:
+   image: "cau1.png",
+   image: "cau2.jpg",
+
+4. Nếu ảnh nằm trong thư mục images:
+   image: "images/cau1.jpg",
+
+5. Nếu không muốn có ảnh:
+   image: "",
+
+Ví dụ:
+{
+    title: "Tình huống 1",
+    desc: "Nội dung tình huống...",
+    image: "images/tinh-huong-1.jpg",
+    options: [
+        "Đáp án A",
+        "Đáp án B",
+        "Đáp án C",
+        "Đáp án D"
+    ],
+    correct: 1
+}
+
+LƯU Ý:
+- correct: 0 = A
+- correct: 1 = B
+- correct: 2 = C
+- correct: 3 = D
+=========================================================
+*/
+
+const quizData = [
+    {
+        title: "Nam điều khiển Drone bay khuất sau toà nhà, không còn nhìn thấy bằng mắt thường nhưng Nam vẫn theo dõi qua màn hình điều khiển. Nam làm vậy có sai không?",        
+        image: "tinhhuong1.png",
+        options: [
+            "Chỉ vi phạm nếu drone bay quá 100m",
+            "Nam sai vì đã điều khiển drone khuất tầm mắt trực tiếp",
+            "Nam bay đúng vì vẫn theo dõi được qua màn hình",
+            "Không vi phạm vì dãy cây không phải công trình xây dựng"
+        ],
+        correct: 1
+    },
+    {
+        title: "Hải muốn quay video hoạt động ngoài trời của lớp bằng drone. Hải nên làm gì?",        
+        image: "tinhhuong2.png",
+        options: [
+            "Bay thấp và lượn gần đường dây điện để quay được chi tiết hơn",
+            "Bay ngay phía trên khu vực học sinh đang đứng để góc quay đẹp hơn",
+            "Bay ở góc xa, đủ cao để bao quát cả khu vực hoạt động",
+            "Hải không được phép bay drone để quay phim"
+        ],
+        correct: 3
+    },
+    {
+        title: "Nhóm của Long mượn drone nghiên cứu của trường ra sân. Long và các bạn còn dùng drone bay vòng quanh trêu chọc bạn khác đang chơi. Hành động này có vấn đề gì?",        
+        image: "tinhhuong3.png",
+        options: [
+            "Không sao, vì chỉ là trêu đùa vui và không ai bị thương",
+            "Chỉ sai nếu Long làm hỏng drone của trường hoặc gây thương tích cho các bạn khác",
+            "Sai, Long không được dùng drone của trường ngoài mục đích học tập và nghiên cứu",
+            "Không sao, vì drone vẫn đang bay trong khuôn viên trường"
+        ],
+        correct: 2
+    },
+    {
+        title: "Lan bay Drone Soccer Class 20 trong nhà lồng lưới kín, sử dụng drone có vòng bảo vệ 360° và khối lượng dưới 250 g. Trong trường hợp này, Lan có vi phạm quy định không?",        
+        image: "tinhhuong4.png",
+        options: [
+            "Có, vì chỉ drone dưới 200 g mới được phép bay trong nhà",
+            "Có, vì drone dưới 250 g vẫn bị cấm bay trong nhà",
+            "Có, vì mọi hoạt động bay drone đều phải xin phép",
+            "Không vi phạm, vì đáp ứng điều kiện bay trong nhà lồng lưới kín với drone phù hợp"
+        ],
+        correct: 3
+    },
 ];
 
 // ===== Hàm xáo trộn mảng (Fisher-Yates) =====
-function shuffleArray(array){
- const arr=array.slice();
- for(let i=arr.length-1;i>0;i--){
-  const j=Math.floor(Math.random()*(i+1));
-  [arr[i],arr[j]]=[arr[j],arr[i]];
- }
- return arr;
+function shuffleArray(array) {
+    const arr = array.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
 }
 
 // ===== Tạo bộ câu hỏi đã xáo trộn (thứ tự câu hỏi + thứ tự đáp án) =====
-function buildShuffledQuiz(){
- const shuffledQuestions=shuffleArray(questions);
- return shuffledQuestions.map(x=>{
-  const optionIndices=x.a.map((_,idx)=>idx);
-  const shuffledIndices=shuffleArray(optionIndices);
-  const newA=shuffledIndices.map(idx=>x.a[idx]);
-  const newC=shuffledIndices.indexOf(x.c);
-  return{title:x.title,image:x.image,q:x.q,a:newA,c:newC,e:x.e};
- });
+function buildShuffledQuiz() {
+    // 1. Xáo trộn thứ tự các câu hỏi
+    const shuffledQuestions = shuffleArray(quizData);
+
+    // 2. Với mỗi câu hỏi, xáo trộn thứ tự đáp án và cập nhật lại chỉ số đáp án đúng
+    return shuffledQuestions.map(q => {
+        const optionIndices = q.options.map((_, idx) => idx);
+        const shuffledIndices = shuffleArray(optionIndices);
+
+        const newOptions = shuffledIndices.map(idx => q.options[idx]);
+        const newCorrect = shuffledIndices.indexOf(q.correct);
+
+        return {
+            title: q.title,
+            desc: q.desc,
+            image: q.image,
+            options: newOptions,
+            correct: newCorrect
+        };
+    });
 }
 
-let activeQuiz=buildShuffledQuiz();
-let n=0,score=0,chosen=[],answered=false;
+let activeQuiz = buildShuffledQuiz();
+let currentQuestion = 0;
+let userAnswers = new Array(activeQuiz.length).fill(null);
+let movingToNext = false;
 
-function render(){
- const x=activeQuiz[n];
- answered=false;
+function loadQuestion() {
+    const q = activeQuiz[currentQuestion];
 
- document.getElementById("fill").style.width=((n+1)/activeQuiz.length*100)+"%";
- document.getElementById("quizTitle").textContent=x.title;
- document.getElementById("quizDesc").textContent=x.q;
- document.getElementById("counter").textContent="Tình huống "+(n+1)+" / "+activeQuiz.length;
+    document.getElementById("quizTitle").textContent = q.title;
+    document.getElementById("quizDesc").textContent = q.desc;
+    document.getElementById("progressText").textContent =
+        `Tình huống ${currentQuestion + 1} / ${activeQuiz.length}`;
 
- const frame=document.getElementById("imageFrame");
- const img=document.getElementById("quizImg");
- img.onerror=function(){ frame.style.display="none"; };
- img.style.opacity="0";
- setTimeout(()=>{ img.src=x.image||""; },120);
- img.onload=function(){ frame.style.display="flex"; img.style.opacity="1"; };
- if(!x.image){ frame.style.display="none"; }
+    const percent = ((currentQuestion + 1) / activeQuiz.length) * 100;
+    document.getElementById("progressBar").style.width = percent + "%";
 
- const opts=document.getElementById("opts");
- opts.innerHTML="";
- x.a.forEach((t,i)=>{
-  const item=document.createElement("div");
-  item.className="option-item";
-  const span=document.createElement("span");
-  span.className="option-text";
-  span.textContent=String.fromCharCode(65+i)+". "+t;
-  item.appendChild(span);
-  item.addEventListener("click",function(){ answer(i,item); });
-  opts.appendChild(item);
- });
-}
+    const optionsGroup = document.getElementById("optionsGroup");
+    optionsGroup.innerHTML = "";
 
-function answer(i,el){
- if(answered) return;
- answered=true;
+    q.options.forEach((text, index) => {
+        const label = document.createElement("label");
+        label.className = "option-item";
 
- const x=activeQuiz[n];
- chosen[n]=i;
- const items=document.querySelectorAll(".option-item");
+        if (userAnswers[currentQuestion] === index) {
+            label.classList.add("selected");
+        }
 
- items.forEach((item,idx)=>{
-  if(idx===i){
-   item.classList.add(idx===x.c?"correct-answer":"wrong-answer");
-  }
-  if(idx===x.c && i!==x.c){
-   item.classList.add("correct-answer");
-  }
- });
+        const radio = document.createElement("input");
+        radio.type = "radio";
+        radio.name = "answer";
+        radio.value = index;
+        radio.checked = userAnswers[currentQuestion] === index;
 
- if(i===x.c) score++;
+        const span = document.createElement("span");
+        span.className = "option-text";
+        span.textContent = text;
 
- const old=document.getElementById("answerFeedback");
- if(old) old.remove();
+        label.appendChild(radio);
+        label.appendChild(span);
 
- const fb=document.createElement("div");
- fb.id="answerFeedback";
- fb.className="answer-feedback "+(i===x.c?"correct":"wrong");
- fb.textContent=(i===x.c?"✔ Chính xác! Đáp án đúng.":"✖ Chưa đúng! Đáp án đúng là: "+x.a[x.c]);
- document.getElementById("opts").appendChild(fb);
+        // Chỉ xử lý một lần cho mỗi lựa chọn
+        label.addEventListener("click", function(e) {
+            e.preventDefault();
+            if (movingToNext) return;
+            selectAnswer(index);
+        });
 
- setTimeout(()=>{
-  if(n<activeQuiz.length-1){
-   n++;
-   render();
-  } else {
-   result();
-  }
- },1000);
-}
+        optionsGroup.appendChild(label);
+    });
 
-function result(){
- document.getElementById("quizView").style.display="none";
- document.getElementById("resultView").style.display="block";
+    document.getElementById("btnPrev").disabled = currentQuestion === 0;
 
- document.getElementById("score").textContent=score+" / "+activeQuiz.length;
+    const frame = document.getElementById("imageFrame");
+    const img = document.getElementById("quizImg");
 
- const msg=document.getElementById("message");
- if(score===activeQuiz.length){
-  msg.textContent="🏆 Xuất sắc! Bạn đã trả lời đúng tất cả câu hỏi!";
-  if(typeof confetti==="function"){
-   confetti({particleCount:150,spread:90,origin:{y:0.6}});
-  }
- } else if(score>=Math.ceil(activeQuiz.length/2)){
-  msg.textContent="👍 Khá tốt! Hãy xem lại các câu chưa đúng nhé.";
- } else {
-  msg.textContent="💡 Bạn cần xem lại kiến thức an toàn bay Drone nhé!";
- }
+    img.onerror = function() {
+        frame.style.display = "none";
+    };
 
- const review=document.getElementById("review");
- review.innerHTML="";
- activeQuiz.forEach((x,i)=>{
-  const userAnsIndex=chosen[i];
-  const isCorrect=userAnsIndex===x.c;
+    img.style.opacity = "0";
+    setTimeout(() => {
+        img.src = q.image || "";
+    }, 120);
 
-  const item=document.createElement("div");
-  item.className="review-item "+(isCorrect?"is-correct":"is-wrong");
+    img.onload = function() {
+        frame.style.display = "flex";
+        img.style.opacity = "1";
+    };
 
-  const title=document.createElement("div");
-  title.className="review-q-title";
-  title.textContent="Câu "+(i+1)+": "+x.title;
-  item.appendChild(title);
-
-  const desc=document.createElement("div");
-  desc.style.marginBottom="10px";
-  desc.style.fontWeight="500";
-  desc.textContent=x.q;
-  item.appendChild(desc);
-
-  // Hiển thị toàn bộ câu trả lời
-  const answerList=document.createElement("div");
-  answerList.style.display="flex";
-  answerList.style.flexDirection="column";
-  answerList.style.gap="6px";
-
-  x.a.forEach((option,optionIndex)=>{
-   const answer=document.createElement("div");
-   answer.style.padding="8px 10px";
-   answer.style.borderRadius="7px";
-   answer.style.border="1px solid #ddd";
-   answer.style.background="#fff";
-
-   let prefix=String.fromCharCode(65+optionIndex)+". ";
-   answer.textContent=prefix+option;
-
-   // Đánh dấu đáp án đúng
-   if(optionIndex===x.c){
-    answer.style.border="2px solid #34a853";
-    answer.style.background="#e6f4ea";
-    answer.style.color="#137333";
-    answer.style.fontWeight="700";
-    answer.textContent+="  ✓ ĐÁP ÁN ĐÚNG";
-   }
-
-   // Đánh dấu đáp án người dùng đã chọn
-   if(optionIndex===userAnsIndex){
-    answer.style.boxShadow="inset 4px 0 0 #1a73e8";
-
-    if(optionIndex===x.c){
-     answer.textContent+="  — BẠN CHỌN";
-    } else {
-     answer.style.border="2px solid #ea4335";
-     answer.style.background="#fce8e6";
-     answer.style.color="#b3261e";
-     answer.textContent+="  ✖ BẠN CHỌN";
+    if (!q.image) {
+        frame.style.display = "none";
     }
-   }
-
-   answerList.appendChild(answer);
-  });
-
-  item.appendChild(answerList);
-
-  // Kết luận câu hỏi
-  const resultLine=document.createElement("div");
-  resultLine.style.marginTop="10px";
-  resultLine.style.fontWeight="700";
-  resultLine.textContent=isCorrect?"✔ Bạn trả lời đúng":"✖ Bạn trả lời chưa đúng";
-  item.appendChild(resultLine);
-
-  review.appendChild(item);
- });
 }
 
-function restart(){
- activeQuiz=buildShuffledQuiz();
- n=0; score=0; chosen=[]; answered=false;
- document.getElementById("resultView").style.display="none";
- document.getElementById("quizView").style.display="block";
- render();
+function selectAnswer(index) {
+    if (movingToNext) return;
+
+    userAnswers[currentQuestion] = index;
+    movingToNext = true;
+
+    const q = activeQuiz[currentQuestion];
+    const options = document.querySelectorAll(".option-item");
+
+    options.forEach((item, i) => {
+        item.classList.remove("selected", "correct-answer", "wrong-answer");
+
+        const radio = item.querySelector("input");
+        if (radio) radio.checked = i === index;
+
+        if (i === index) {
+            item.classList.add("selected");
+
+            if (index === q.correct) {
+                item.classList.add("correct-answer");
+            } else {
+                item.classList.add("wrong-answer");
+            }
+        }
+
+        // Nếu chọn sai, đồng thời làm nổi bật đáp án đúng
+        if (index !== q.correct && i === q.correct) {
+            item.classList.add("correct-answer");
+        }
+    });
+
+    // Tạo thông báo đúng / sai
+    const oldFeedback = document.getElementById("answerFeedback");
+    if (oldFeedback) oldFeedback.remove();
+
+    const feedback = document.createElement("div");
+    feedback.id = "answerFeedback";
+    feedback.className = "answer-feedback " +
+        (index === q.correct ? "correct" : "wrong");
+
+    if (index === q.correct) {
+        feedback.textContent = "✔ Chính xác! Đáp án đúng.";
+    } else {
+        feedback.textContent =
+            "✖ Chưa đúng! Đáp án đúng là: " + q.options[q.correct];
+    }
+
+    document.getElementById("optionsGroup").appendChild(feedback);
+
+    // Cho người học nhìn thấy hiệu ứng trước khi chuyển câu
+    setTimeout(() => {
+        if (currentQuestion < activeQuiz.length - 1) {
+            currentQuestion++;
+            movingToNext = false;
+            loadQuestion();
+        } else {
+            movingToNext = false;
+            showResults();
+        }
+    }, 1000);
+}
+function prevQuestion() {
+    if (currentQuestion > 0 && !movingToNext) {
+        currentQuestion--;
+        loadQuestion();
+    }
 }
 
-document.addEventListener("DOMContentLoaded",render);
+function showResults() {
+    document.getElementById("quizView").style.display = "none";
+    document.getElementById("resultView").style.display = "block";
+
+    let score = 0;
+    const reviewList = document.getElementById("reviewList");
+    reviewList.innerHTML = "";
+
+    activeQuiz.forEach((q, idx) => {
+        const userAnsIndex = userAnswers[idx];
+        const isCorrect = userAnsIndex === q.correct;
+
+        if (isCorrect) score++;
+
+        const item = document.createElement("div");
+        item.className = "review-item " + (isCorrect ? "is-correct" : "is-wrong");
+
+        const title = document.createElement("div");
+        title.className = "review-q-title";
+        title.textContent = `Câu ${idx + 1}: ${q.title}`;
+        item.appendChild(title);
+
+        const desc = document.createElement("div");
+        desc.style.marginBottom = "10px";
+        desc.style.fontWeight = "500";
+        desc.textContent = q.desc;
+        item.appendChild(desc);
+
+        // Hiển thị toàn bộ câu trả lời
+        const answerList = document.createElement("div");
+        answerList.style.display = "flex";
+        answerList.style.flexDirection = "column";
+        answerList.style.gap = "6px";
+
+        q.options.forEach((option, optionIndex) => {
+            const answer = document.createElement("div");
+            answer.style.padding = "8px 10px";
+            answer.style.borderRadius = "7px";
+            answer.style.border = "1px solid #ddd";
+            answer.style.background = "#fff";
+
+            let prefix = String.fromCharCode(65 + optionIndex) + ". ";
+            answer.textContent = prefix + option;
+
+            // Đánh dấu đáp án đúng
+            if (optionIndex === q.correct) {
+                answer.style.border = "2px solid #34a853";
+                answer.style.background = "#e6f4ea";
+                answer.style.color = "#137333";
+                answer.style.fontWeight = "700";
+                answer.textContent += "  ✓ ĐÁP ÁN ĐÚNG";
+            }
+
+            // Đánh dấu đáp án người dùng đã chọn
+            if (optionIndex === userAnsIndex) {
+                answer.style.boxShadow = "inset 4px 0 0 #1a73e8";
+
+                if (optionIndex === q.correct) {
+                    answer.textContent += "  — BẠN CHỌN";
+                } else {
+                    answer.style.border = "2px solid #ea4335";
+                    answer.style.background = "#fce8e6";
+                    answer.style.color = "#b3261e";
+                    answer.textContent += "  ✖ BẠN CHỌN";
+                }
+            }
+
+            answerList.appendChild(answer);
+        });
+
+        item.appendChild(answerList);
+
+        // Kết luận câu hỏi
+        const resultLine = document.createElement("div");
+        resultLine.style.marginTop = "10px";
+        resultLine.style.fontWeight = "700";
+        resultLine.textContent = isCorrect
+            ? "✔ Bạn trả lời đúng"
+            : "✖ Bạn trả lời chưa đúng";
+
+        item.appendChild(resultLine);
+        reviewList.appendChild(item);
+    });
+
+    document.getElementById("scoreText").textContent =
+        `${score} / ${activeQuiz.length}`;
+
+    const msg = document.getElementById("scoreMessage");
+
+    if (score === activeQuiz.length) {
+        msg.textContent = "🏆 Xuất sắc! Bạn đã trả lời đúng tất cả câu hỏi!";
+        if (typeof confetti === "function") {
+            confetti({
+                particleCount: 150,
+                spread: 90,
+                origin: { y: 0.6 }
+            });
+        }
+    } else if (score >= Math.ceil(activeQuiz.length / 2)) {
+        msg.textContent = "👍 Khá tốt! Hãy xem lại các câu chưa đúng nhé.";
+    } else {
+        msg.textContent = "💡 Bạn cần xem lại kiến thức an toàn bay Drone nhé!";
+    }
+}
+function restartQuiz() {
+    // Xáo trộn lại toàn bộ câu hỏi và đáp án mỗi khi làm lại bài
+    activeQuiz = buildShuffledQuiz();
+    currentQuestion = 0;
+    userAnswers = new Array(activeQuiz.length).fill(null);
+    movingToNext = false;
+
+    document.getElementById("resultView").style.display = "none";
+    document.getElementById("quizView").style.display = "block";
+
+    loadQuestion();
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    loadQuestion();
+});
 </script>
 </body>
 </html>
