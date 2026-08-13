@@ -368,14 +368,14 @@
                 <img id="quizImg" src="" alt="Hình minh họa" class="quiz-image">
             </div>
 
-            <h2 class="scenario-title" id="quizTitle">Tình huống 1</h2>
+            <h2 class="scenario-title" id="quizTitle"></h2>
             <p class="scenario-desc" id="quizDesc">Nội dung câu hỏi...</p>
 
             <div class="options-group" id="optionsGroup"></div>
 
             <div class="action-group">
                 <button class="btn-nav" id="btnPrev" onclick="prevQuestion()" disabled>&lt; Quay lại</button>
-                <span class="progress-text" id="progressText">Tình huống 1 / 4</span>
+                <span class="progress-text" id="progressText">1 / 4</span>
             </div>
         </div>
 
@@ -533,10 +533,10 @@ let movingToNext = false;
 function loadQuestion() {
     const q = activeQuiz[currentQuestion];
 
-    document.getElementById("quizTitle").textContent = q.title;
+    document.getElementById("quizTitle").textContent = `Câu hỏi ${currentQuestion + 1}: ${q.title}`;
     document.getElementById("quizDesc").textContent = q.desc;
     document.getElementById("progressText").textContent =
-        `Tình huống ${currentQuestion + 1} / ${activeQuiz.length}`;
+        `${currentQuestion + 1} / ${activeQuiz.length}`;
 
     const percent = ((currentQuestion + 1) / activeQuiz.length) * 100;
     document.getElementById("progressBar").style.width = percent + "%";
@@ -686,7 +686,7 @@ function showResults() {
 
         const title = document.createElement("div");
         title.className = "review-q-title";
-        title.textContent = `Câu ${idx + 1}: ${q.title}`;
+        title.textContent = `Câu hỏi ${idx + 1}: ${q.title}`;
         item.appendChild(title);
 
         const desc = document.createElement("div");
