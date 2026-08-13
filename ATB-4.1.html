@@ -525,19 +525,53 @@ const quizData = [
     },
 ];
 
+// ===== Hàm xáo trộn mảng (Fisher-Yates) =====
+function shuffleArray(array) {
+    const arr = array.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// ===== Tạo bộ câu hỏi đã xáo trộn (thứ tự câu hỏi + thứ tự đáp án) =====
+function buildShuffledQuiz() {
+    // 1. Xáo trộn thứ tự các câu hỏi
+    const shuffledQuestions = shuffleArray(quizData);
+
+    // 2. Với mỗi câu hỏi, xáo trộn thứ tự đáp án và cập nhật lại chỉ số đáp án đúng
+    return shuffledQuestions.map(q => {
+        const optionIndices = q.options.map((_, idx) => idx);
+        const shuffledIndices = shuffleArray(optionIndices);
+
+        const newOptions = shuffledIndices.map(idx => q.options[idx]);
+        const newCorrect = shuffledIndices.indexOf(q.correct);
+
+        return {
+            title: q.title,
+            desc: q.desc,
+            image: q.image,
+            options: newOptions,
+            correct: newCorrect
+        };
+    });
+}
+
+let activeQuiz = buildShuffledQuiz();
 let currentQuestion = 0;
-let userAnswers = new Array(quizData.length).fill(null);
+let userAnswers = new Array(activeQuiz.length).fill(null);
 let movingToNext = false;
 
 function loadQuestion() {
-    const q = quizData[currentQuestion];
+    const q = activeQuiz[currentQuestion];
 
     document.getElementById("quizTitle").textContent = q.title;
     document.getElementById("quizDesc").textContent = q.desc;
     document.getElementById("progressText").textContent =
-        `Tình huống ${currentQuestion + 1} / ${quizData.length}`;
+        `Tình huống ${currentQuestion + 1} / ${activeQuiz.length}`;
 
-    const percent = ((currentQuestion + 1) / quizData.length) * 100;
+    const percent = ((currentQuestion + 1) / activeQuiz.length) * 100;
     document.getElementById("progressBar").style.width = percent + "%";
 
     const optionsGroup = document.getElementById("optionsGroup");
@@ -604,7 +638,7 @@ function selectAnswer(index) {
     userAnswers[currentQuestion] = index;
     movingToNext = true;
 
-    const q = quizData[currentQuestion];
+    const q = activeQuiz[currentQuestion];
     const options = document.querySelectorAll(".option-item");
 
     options.forEach((item, i) => {
@@ -649,7 +683,7 @@ function selectAnswer(index) {
 
     // Cho người học nhìn thấy hiệu ứng trước khi chuyển câu
     setTimeout(() => {
-        if (currentQuestion < quizData.length - 1) {
+        if (currentQuestion < activeQuiz.length - 1) {
             currentQuestion++;
             movingToNext = false;
             loadQuestion();
@@ -674,7 +708,7 @@ function showResults() {
     const reviewList = document.getElementById("reviewList");
     reviewList.innerHTML = "";
 
-    quizData.forEach((q, idx) => {
+    activeQuiz.forEach((q, idx) => {
         const userAnsIndex = userAnswers[idx];
         const isCorrect = userAnsIndex === q.correct;
 
@@ -751,11 +785,11 @@ function showResults() {
     });
 
     document.getElementById("scoreText").textContent =
-        `${score} / ${quizData.length}`;
+        `${score} / ${activeQuiz.length}`;
 
     const msg = document.getElementById("scoreMessage");
 
-    if (score === quizData.length) {
+    if (score === activeQuiz.length) {
         msg.textContent = "🏆 Xuất sắc! Bạn đã trả lời đúng tất cả câu hỏi!";
         if (typeof confetti === "function") {
             confetti({
@@ -764,15 +798,17 @@ function showResults() {
                 origin: { y: 0.6 }
             });
         }
-    } else if (score >= Math.ceil(quizData.length / 2)) {
+    } else if (score >= Math.ceil(activeQuiz.length / 2)) {
         msg.textContent = "👍 Khá tốt! Hãy xem lại các câu chưa đúng nhé.";
     } else {
         msg.textContent = "💡 Bạn cần xem lại kiến thức an toàn bay Drone nhé!";
     }
 }
 function restartQuiz() {
+    // Xáo trộn lại toàn bộ câu hỏi và đáp án mỗi khi làm lại bài
+    activeQuiz = buildShuffledQuiz();
     currentQuestion = 0;
-    userAnswers = new Array(quizData.length).fill(null);
+    userAnswers = new Array(activeQuiz.length).fill(null);
     movingToNext = false;
 
     document.getElementById("resultView").style.display = "none";
